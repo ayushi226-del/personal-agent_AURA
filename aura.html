@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AURA — Network Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+  <style>
+/* ══════════════════════════════════════════
+   AURA — Personal Network Agent
+   Warm Coral × Cloud White × Deep Charcoal
+══════════════════════════════════════════ */
+
+:root {
+  /* Coral + Claude palette */
+  --primary:       #e8553a;
+  --primary-light: #fdf0ed;
+  --primary-mid:   #f59070;
+  --primary-dark:  #c73d22;
+
+  --coral-fg:      #e8553a;
+  --coral-bg:      #fdf0ed;
+
+  --surface:       #fafaf8;
+  --surface-dim:   #f4f3f0;
+  --surface-card:  #ffffff;
+  --surface-hover: #f0efe9;
+
+  --blue-bg:    #eef3ff; --blue-fg:   #3d6bdf;
+  --green-bg:   #e8f5ec; --green-fg:  #2e7d4f;
+  --yellow-bg:  #fff8e6; --yellow-fg: #c47e00;
+  --red-bg:     #fdecea; --red-fg:    #c0392b;
+
+  --text-primary:   #1a1a18;
+  --text-secondary: #5a5a56;
+  --text-hint:      #9a9a92;
+  --text-on-primary:#ffffff;
+
+  --border:       #e4e2db;
+  --border-focus: #e8553a;
+
+  --header-h:  64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 100px;
+
+  --font-display: 'DM Serif Display', serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'Space Mono', monospace;
+
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--primary); text-decoration: none; }
+button, input, select, textarea { font-family: var(--font-body); }
+button { cursor: pointer; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+#glitter-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.header, .main, .modal-overlay { position: relative; z-index: 1; }
+
+/* ════ HEADER ════ */
+.header {
+  position: sticky; top: 0; z-index: 200;
+  height: var(--header-h);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 10px;
+}
+.header-left { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+.app-icon {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: white; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(232,85,58,.4);
+}
+.app-icon .material-icons-round { font-size: 20px; }
+.logo-name {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 400;
+  color: var(--text-primary); line-height: 1;
+  letter-spacing: .02em;
+}
+.logo-sub { font-size: 11px; color: var(--text-hint); display: block; margin-top: 1px; font-family: var(--font-mono); }
+
+.nav { flex: 1; display: flex; justify-content: center; gap: 2px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border: none; border-radius: var(--radius-pill);
+  background: transparent; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; white-space: nowrap; transition: all .15s;
+}
+.nav-btn .material-icons-round { font-size: 18px; }
+.nav-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav-btn.active { background: var(--coral-bg); color: var(--primary); }
+
+.header-right { display: flex; align-items: center; gap: 8px; min-width: 200px; justify-content: flex-end; }
+.status-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px; background: var(--green-bg);
+  border-radius: var(--radius-pill); font-size: 11.5px; font-weight: 500; color: var(--green-fg);
+  transition: all .3s;
+}
+.status-dot { width: 6px; height: 6px; background: var(--green-fg); border-radius: 50%; }
+.avatar-btn {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 13px; font-weight: 600;
+  cursor: pointer; user-select: none; border: none;
+  box-shadow: 0 2px 8px rgba(232,85,58,.3);
+  transition: transform .15s, box-shadow .15s;
+}
+.avatar-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(232,85,58,.4); }
+
+/* ════ BUTTONS ════ */
+.filled-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; background: var(--primary); color: white;
+  border: none; border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 500; transition: all .15s;
+  box-shadow: 0 2px 8px rgba(232,85,58,.3);
+}
+.filled-btn .material-icons-round { font-size: 17px; }
+.filled-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(232,85,58,.45); }
+
+.outline-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 20px; background: transparent; color: var(--primary);
+  border: 1.5px solid var(--primary); border-radius: var(--radius-pill);
+  font-size: 13px; font-weight: 500; transition: all .15s;
+}
+.outline-btn:hover { background: var(--coral-bg); }
+
+.icon-btn {
+  width: 38px; height: 38px; background: transparent; border: none;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary); transition: all .15s;
+}
+.icon-btn .material-icons-round { font-size: 20px; }
+.icon-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+
+.text-btn {
+  background: transparent; border: none; color: var(--primary);
+  font-size: 12.5px; font-weight: 500; padding: 4px 8px;
+  border-radius: var(--radius-sm); transition: all .15s;
+}
+.text-btn:hover { background: var(--coral-bg); }
+
+/* ════ MAIN ════ */
+.main { max-width: 1300px; margin: 0 auto; padding: 28px 24px; }
+.section { display: none; }
+.section.active { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.page-title { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.page-title h1 {
+  font-family: var(--font-display);
+  font-size: 26px; font-weight: 400;
+  color: var(--text-primary); flex: 1;
+}
+.page-chip {
+  padding: 4px 14px; background: var(--green-bg); color: var(--green-fg);
+  font-size: 11.5px; font-weight: 600; border-radius: var(--radius-pill);
+  font-family: var(--font-mono); letter-spacing: .04em;
+}
+
+/* ════ STAT CARDS ════ */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px;
+  box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.stat-label { font-size: 12px; font-weight: 600; color: var(--text-hint); text-transform: uppercase; letter-spacing: .06em; font-family: var(--font-mono); }
+.stat-icon-wrap {
+  width: 34px; height: 34px; border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-icon-wrap .material-icons-round { font-size: 18px; }
+.stat-icon-wrap.coral { background: var(--coral-bg); color: var(--coral-fg); }
+.stat-icon-wrap.green { background: var(--green-bg); color: var(--green-fg); }
+.stat-icon-wrap.yellow { background: var(--yellow-bg); color: var(--yellow-fg); }
+.stat-icon-wrap.red   { background: var(--red-bg);    color: var(--red-fg);   }
+.stat-value { font-family: var(--font-display); font-size: 38px; font-weight: 400; color: var(--text-primary); line-height: 1; margin-bottom: 8px; }
+.stat-trend { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--green-fg); font-weight: 500; }
+.stat-trend .material-icons-round { font-size: 14px; }
+
+/* ════ PANELS ════ */
+.dash-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.panel-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.recent-list, .activity-log { padding: 4px 0; max-height: 280px; overflow-y: auto; }
+.recent-item { display: flex; align-items: center; gap: 12px; padding: 10px 18px; cursor: pointer; transition: background .1s; }
+.recent-item:hover { background: var(--surface-hover); }
+.recent-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--coral-bg); color: var(--coral-fg);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 12px; flex-shrink: 0;
+}
+.recent-name { font-size: 13.5px; font-weight: 500; color: var(--text-primary); }
+.recent-role { font-size: 11.5px; color: var(--text-secondary); margin-top: 1px; }
+.log-entry { display: flex; gap: 14px; align-items: baseline; padding: 7px 18px; font-size: 12.5px; border-bottom: 1px solid var(--surface-dim); }
+.log-entry:hover { background: var(--surface-hover); }
+.log-time { font-size: 10.5px; color: var(--text-hint); min-width: 38px; flex-shrink: 0; font-family: var(--font-mono); }
+.log-msg { color: var(--text-secondary); }
+.log-entry.crm { border-left: 3px solid var(--blue-fg); padding-left: 15px; }
+
+/* ════ PRIORITY BADGE ════ */
+.priority-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  font-family: var(--font-mono); white-space: nowrap;
+}
+
+/* ════ CONNECTIONS ════ */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+.search-wrap {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: 0 14px;
+}
+.search-wrap:focus-within { border-color: var(--border-focus); }
+.search-wrap .material-icons-round { color: var(--text-hint); font-size: 18px; }
+.search-input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: var(--text-primary); padding: 11px 0; }
+.search-input::placeholder { color: var(--text-hint); }
+.field-filter {
+  padding: 11px 14px; background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); font-size: 13px; color: var(--text-primary);
+  outline: none; cursor: pointer; min-width: 150px;
+}
+.field-filter:focus { border-color: var(--border-focus); }
+
+.connections-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.connection-card {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px; position: relative;
+  box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s;
+}
+.connection-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary-mid); }
+.card-top { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.card-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--coral-bg); color: var(--coral-fg);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 16px; font-weight: 400; flex-shrink: 0;
+}
+.card-info { flex: 1; min-width: 0; }
+.card-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-role { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.card-field {
+  display: inline-block; font-size: 10.5px; font-weight: 600;
+  padding: 2px 8px; background: var(--coral-bg); color: var(--coral-fg);
+  border-radius: var(--radius-sm); font-family: var(--font-mono);
+}
+.card-priority-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.priority-label { font-size: 10.5px; font-weight: 700; color: var(--text-hint); font-family: var(--font-mono); letter-spacing: .06em; }
+.card-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.profile-link {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 11.5px; font-weight: 500; color: var(--text-secondary);
+  transition: all .15s; background: transparent; white-space: nowrap;
+}
+.profile-link:hover { background: var(--surface-hover); color: var(--text-primary); border-color: var(--text-hint); }
+.profile-link.disabled { opacity: .35; cursor: default; pointer-events: none; }
+.profile-link.x-link { flex: 0 0 auto; min-width: 38px; color: #000; border-color: #000; }
+.profile-link.x-link:hover { background: #000; color: #fff; }
+.profile-link.common-ev-btn { cursor: pointer; }
+.profile-link.common-ev-btn:hover { background: var(--coral-bg); color: var(--coral-fg); border-color: var(--coral-fg); }
+.card-delete {
+  position: absolute; top: 12px; right: 12px;
+  background: transparent; border: none; color: var(--text-hint);
+  border-radius: 50%; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center; opacity: 0; font-size: 13px;
+}
+.connection-card:hover .card-delete { opacity: 1; }
+.card-delete:hover { background: var(--red-bg); color: var(--red-fg); }
+.card-notes { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--surface-dim); font-size: 11.5px; color: var(--text-hint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-source-badge {
+  position: absolute; top: 10px; left: 14px;
+  font-size: 9.5px; font-weight: 700; color: var(--coral-fg);
+  background: var(--coral-bg); padding: 2px 6px;
+  border-radius: var(--radius-sm); font-family: var(--font-mono);
+}
+
+/* ════ RANKINGS ════ */
+.chip-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip {
+  padding: 6px 14px; background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
+  transition: all .15s;
+}
+.chip:hover { background: var(--surface-hover); color: var(--text-primary); }
+.chip.active { background: var(--coral-bg); border-color: var(--primary); color: var(--primary); }
+
+.priority-filter-row { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+.priority-filter-row .filter-label { font-size: 11.5px; color: var(--text-hint); font-family: var(--font-mono); font-weight: 700; letter-spacing: .04em; }
+
+.rankings-card {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+}
+.rank-header-row {
+  display: grid; grid-template-columns: 56px 1fr 140px 120px 120px;
+  padding: 12px 18px; background: var(--surface-dim); border-bottom: 1px solid var(--border);
+  font-size: 10.5px; font-weight: 700; color: var(--text-hint);
+  text-transform: uppercase; letter-spacing: .06em; font-family: var(--font-mono);
+}
+.rank-row {
+  display: grid; grid-template-columns: 56px 1fr 140px 120px 120px;
+  padding: 12px 18px; border-bottom: 1px solid var(--surface-dim); align-items: center;
+  transition: background .1s;
+}
+.rank-row:last-child { border-bottom: none; }
+.rank-row:hover { background: var(--surface-hover); }
+.rank-number { font-family: var(--font-display); font-size: 20px; font-weight: 400; text-align: center; }
+.rank-1 { color: #c47e00; } .rank-2 { color: #9aa0a6; } .rank-3 { color: #bf8650; } .rank-other { font-size: 12px; color: var(--text-hint); font-family: var(--font-mono); }
+.rank-profile { display: flex; align-items: center; gap: 12px; }
+.rank-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--coral-bg); color: var(--coral-fg); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.rank-name { font-size: 13.5px; font-weight: 500; color: var(--text-primary); }
+.rank-role { font-size: 11.5px; color: var(--text-secondary); }
+.rank-field-tag {
+  display: inline-block; padding: 3px 8px;
+  background: var(--surface-dim); border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-mono);
+}
+.rank-priority-cell { display: flex; align-items: center; }
+.rank-links { display: flex; gap: 5px; align-items: center; }
+.rank-link {
+  padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 11px; font-weight: 600; color: var(--text-secondary);
+  transition: all .15s; font-family: var(--font-mono);
+}
+.rank-link:hover { background: var(--coral-bg); color: var(--primary); border-color: var(--primary); }
+.x-rank-link { color: #000; border-color: #000; }
+.x-rank-link:hover { background: #000; color: #fff; }
+
+/* ════ CALENDAR ════ */
+.calendar-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+.calendar-widget {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.cal-month-year { font-family: var(--font-display); font-size: 15px; font-weight: 400; color: var(--text-primary); }
+.cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+.cal-days-header span { text-align: center; font-size: 10px; font-weight: 700; color: var(--text-hint); padding: 6px 0; font-family: var(--font-mono); letter-spacing: .04em; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day {
+  aspect-ratio: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 12.5px; color: var(--text-secondary);
+  border-radius: var(--radius-md); cursor: pointer;
+  position: relative; transition: all .15s; overflow: hidden;
+  padding: 2px;
+}
+.cal-day:hover { background: var(--surface-hover); color: var(--text-primary); }
+.cal-day.today { background: var(--primary); color: white; font-weight: 600; }
+.cal-day.today:hover { background: var(--primary-dark); }
+.cal-day.has-event { background: var(--coral-bg); }
+.cal-day.today.has-event { background: var(--primary); }
+.cal-day.empty { cursor: default; pointer-events: none; }
+.cal-day-num { font-size: 12.5px; line-height: 1; font-weight: 500; }
+.cal-event-label {
+  font-size: 8px; color: var(--coral-fg); text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%; padding: 0 2px; font-weight: 600;
+  line-height: 1.2; margin-top: 1px;
+}
+.cal-day.today .cal-event-label { color: rgba(255,255,255,.85); }
+
+.events-panel-wrap { overflow: hidden; }
+.events-list { padding: 4px 0; max-height: 480px; overflow-y: auto; }
+.event-item { display: flex; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--surface-dim); align-items: flex-start; transition: background .1s; }
+.event-item:hover { background: var(--surface-hover); }
+.event-item:last-child { border-bottom: none; }
+.event-date-block {
+  width: 42px; background: var(--coral-bg); border-radius: var(--radius-sm);
+  padding: 6px 0; display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+}
+.event-day-num { font-family: var(--font-display); font-size: 20px; font-weight: 400; color: var(--primary); line-height: 1; }
+.event-mon { font-size: 9px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .05em; font-family: var(--font-mono); }
+.event-details { flex: 1; min-width: 0; }
+.event-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+.event-time { font-size: 11.5px; color: var(--text-secondary); margin-bottom: 5px; }
+.event-type-badge {
+  display: inline-block; padding: 2px 8px;
+  background: var(--surface-dim); border-radius: var(--radius-sm);
+  font-size: 10.5px; font-weight: 600; color: var(--text-secondary); font-family: var(--font-mono);
+}
+.event-delete { background: transparent; border: none; color: var(--text-hint); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; opacity: 0; flex-shrink: 0; font-size: 13px; }
+.event-item:hover .event-delete { opacity: 1; }
+.event-delete:hover { background: var(--red-bg); color: var(--red-fg); }
+
+/* ════ COMMON EVENTS SECTION ════ */
+.common-events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.common-event-card {
+  background: var(--surface-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm);
+}
+.ce-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--surface-dim); }
+.ce-events { display: flex; flex-direction: column; gap: 8px; }
+.ce-event-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+
+/* ════ AI CHAT PANEL ════ */
+.ai-panel-toggle {
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--primary); color: white; border: none;
+  box-shadow: 0 4px 16px rgba(232,85,58,.5);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .2s, box-shadow .2s;
+}
+.ai-panel-toggle .material-icons-round { font-size: 24px; }
+.ai-panel-toggle:hover { background: var(--primary-dark); transform: scale(1.05); }
+
+.ai-panel {
+  position: fixed; bottom: 88px; right: 24px; z-index: 300;
+  width: 380px; max-height: 520px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  display: none; flex-direction: column; overflow: hidden;
+}
+.ai-panel.open { display: flex; animation: slideUp .2s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.ai-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--coral-bg) 0%, #fff 100%);
+}
+.ai-panel-title { font-size: 13.5px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+.ai-panel-title .material-icons-round { font-size: 18px; }
+.ai-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.ai-msg { max-width: 88%; padding: 9px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; }
+.ai-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+.ai-msg.agent { background: var(--surface-dim); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 4px; }
+.ai-msg.thinking { opacity: .6; font-style: italic; }
+.ai-input-row { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); }
+.ai-input { flex: 1; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 8px 14px; font-size: 13px; outline: none; background: var(--surface); color: var(--text-primary); }
+.ai-input:focus { border-color: var(--border-focus); }
+.ai-send-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; border: none; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ai-send-btn .material-icons-round { font-size: 17px; }
+.ai-send-btn:hover { background: var(--primary-dark); }
+.ai-suggestion-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.ai-chip { padding: 5px 12px; background: var(--coral-bg); border: 1px solid var(--primary-mid); color: var(--primary); border-radius: var(--radius-pill); font-size: 11.5px; font-weight: 500; cursor: pointer; transition: all .15s; }
+.ai-chip:hover { background: var(--primary); color: white; }
+
+/* ════ MODALS ════ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,26,24,0.5); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+.modal-overlay.open { display: flex; animation: fadeIn .15s ease; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 560px; max-width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; font-family: var(--font-display); font-size: 18px; font-weight: 400; color: var(--text-primary); border-bottom: 1px solid var(--border); }
+.modal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.form-row { display: flex; flex-direction: column; gap: 6px; }
+.form-row label { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .06em; font-family: var(--font-mono); }
+.form-row input:not([type=range]), .form-row select, .form-row textarea {
+  padding: 9px 12px; background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-md); font-size: 14px; color: var(--text-primary);
+  outline: none; resize: vertical; transition: border-color .15s;
+}
+.form-row input:not([type=range]):focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--border-focus); background: var(--surface-card); }
+.form-row textarea { min-height: 80px; }
+.form-row.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row.two-col>div { display: flex; flex-direction: column; gap: 6px; }
+.range-row { display: flex; align-items: center; gap: 14px; }
+.range-row input[type=range] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+.score-display { font-family: var(--font-display); font-size: 20px; color: var(--primary); min-width: 36px; text-align: center; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* Connection selector in event modal */
+.conn-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 0 12px; background: var(--surface);
+}
+.conn-search-wrap:focus-within { border-color: var(--border-focus); }
+.conn-search-wrap .material-icons-round { color: var(--text-hint); font-size: 16px; }
+.conn-search-wrap input { flex: 1; border: none; outline: none; background: transparent; font-size: 13px; padding: 8px 0; color: var(--text-primary); }
+.connections-selector { border: 1.5px solid var(--border); border-radius: var(--radius-md); max-height: 130px; overflow-y: auto; background: var(--surface); }
+.conn-checkbox-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; font-size: 13px; color: var(--text-primary); cursor: pointer; transition: background .1s; }
+.conn-checkbox-item:hover { background: var(--surface-hover); }
+.conn-checkbox-item input { accent-color: var(--primary); flex-shrink: 0; }
+
+/* ════ PROFILE MODAL ════ */
+.profile-stats-row { display: flex; gap: 16px; }
+.profile-stat { flex: 1; background: var(--surface-dim); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+.profile-stat-num { font-family: var(--font-display); font-size: 28px; font-weight: 400; color: var(--primary); }
+.profile-stat-lbl { font-size: 11px; color: var(--text-hint); font-family: var(--font-mono); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+/* ════ EMPTY STATES ════ */
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 36px 20px; color: var(--text-hint); text-align: center; }
+.empty-state .material-icons-round { font-size: 36px; }
+.empty-state p { font-size: 14px; }
+.empty-state-big { grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 60px 20px; color: var(--text-hint); text-align: center; }
+.empty-state-big .material-icons-round { font-size: 48px; }
+.empty-state-big p { font-size: 14px; font-weight: 500; }
+.empty-sub { font-size: 12px; }
+
+/* ════ CORAL BANNER ════ */
+#coral-status-banner { position: fixed; bottom: 16px; right: 88px; z-index: 900; padding: 10px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; border: 1px solid var(--border); background: var(--surface); pointer-events: none; font-family: var(--font-mono); }
+
+/* ════ RESPONSIVE ════ */
+@media(max-width:1100px){
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .rank-header-row, .rank-row { grid-template-columns: 50px 1fr 120px 100px; }
+  .rank-header-row span:nth-child(5), .rank-row>*:nth-child(5) { display: none; }
+  .calendar-layout { grid-template-columns: 1fr; }
+}
+@media(max-width:760px){
+  .header { padding: 0 12px; }
+  .nav span:not(.material-icons-round) { display: none; }
+  .nav-btn { padding: 8px 10px; }
+  .main { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .dash-bottom { grid-template-columns: 1fr; }
+  .rank-header-row, .rank-row { grid-template-columns: 44px 1fr 90px; }
+  .rank-header-row span:nth-child(3), .rank-row>*:nth-child(3),
+  .rank-header-row span:nth-child(4), .rank-row>*:nth-child(4) { display: none; }
+  .ai-panel { width: calc(100vw - 32px); right: 16px; }
+  .header-left .logo-sub { display: none; }
+}
+  </style>
+</head>
+<body>
+
+  <canvas id="glitter-canvas"></canvas>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="app-icon">
+        <span class="material-icons-round">auto_awesome</span>
+      </div>
+      <div class="logo-wrap">
+        <span class="logo-name">AURA</span>
+        <span class="logo-sub">Network Agent</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-section="dashboard">
+        <span class="material-icons-round">dashboard</span>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-btn" data-section="connections">
+        <span class="material-icons-round">people</span>
+        <span>Connections</span>
+      </button>
+      <button class="nav-btn" data-section="rankings">
+        <span class="material-icons-round">leaderboard</span>
+        <span>Rankings</span>
+      </button>
+      <button class="nav-btn" data-section="calendar">
+        <span class="material-icons-round">calendar_month</span>
+        <span>Calendar</span>
+      </button>
+      <button class="nav-btn" data-section="common-events">
+        <span class="material-icons-round">event_note</span>
+        <span>Common Events</span>
+      </button>
+    </nav>
+
+    <div class="header-right">
+      <button id="sync-btn" class="icon-btn" title="Sync from Coral">
+        <span class="material-icons-round">sync</span>
+      </button>
+      <div class="status-chip" id="coral-status-chip">
+        <span class="status-dot"></span>
+        <span id="coral-status-text">Connecting…</span>
+      </div>
+      <button class="avatar-btn" id="avatar-btn" title="Your Profile">
+        <span id="avatar-initials">A</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- ════ DASHBOARD ════ -->
+    <section id="dashboard" class="section active">
+      <div class="page-title">
+        <h1>Network Overview</h1>
+        <span class="page-chip">Live</span>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top-row">
+            <span class="stat-label">Connections</span>
+            <span class="stat-icon-wrap coral"><span class="material-icons-round">people</span></span>
+          </div>
+          <div class="stat-value" id="stat-connections">0</div>
+          <div class="stat-trend"><span class="material-icons-round">trending_up</span> Synced from Coral</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top-row">
+            <span class="stat-label">Events</span>
+            <span class="stat-icon-wrap green"><span class="material-icons-round">event</span></span>
+          </div>
+          <div class="stat-value" id="stat-events">0</div>
+          <div class="stat-trend"><span class="material-icons-round">trending_up</span> This season</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top-row">
+            <span class="stat-label">High Priority</span>
+            <span class="stat-icon-wrap red"><span class="material-icons-round">local_fire_department</span></span>
+          </div>
+          <div class="stat-value" id="stat-top">0</div>
+          <div class="stat-trend"><span class="material-icons-round">star</span> Key connections</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top-row">
+            <span class="stat-label">Fields</span>
+            <span class="stat-icon-wrap yellow"><span class="material-icons-round">category</span></span>
+          </div>
+          <div class="stat-value" id="stat-fields">0</div>
+          <div class="stat-trend"><span class="material-icons-round">workspaces</span> Industries</div>
+        </div>
+      </div>
+
+      <div class="dash-bottom">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Recent Connections</span>
+            <button class="text-btn" onclick="document.querySelector('[data-section=connections]').click()">View all</button>
+          </div>
+          <div id="recent-list" class="recent-list">
+            <div class="empty-state">
+              <span class="material-icons-round">person_add</span>
+              <p>No connections yet</p>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Activity Log</span>
+          </div>
+          <div id="activity-log" class="activity-log">
+            <div class="log-entry"><span class="log-time">Now</span><span class="log-msg">AURA agent initialized</span></div>
+            <div class="log-entry"><span class="log-time">Now</span><span class="log-msg">Network scan complete</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ CONNECTIONS ════ -->
+    <section id="connections" class="section">
+      <div class="page-title">
+        <h1>Connections</h1>
+        <button class="filled-btn" id="open-modal-btn">
+          <span class="material-icons-round">add</span> Add connection
+        </button>
+      </div>
+
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span class="material-icons-round">search</span>
+          <input type="text" class="search-input" id="search-input" placeholder="Search by name or role…" />
+        </div>
+        <select class="field-filter" id="field-filter">
+          <option value="">All fields</option>
+        </select>
+      </div>
+
+      <div class="connections-grid" id="connections-grid">
+        <div class="empty-state-big">
+          <span class="material-icons-round">group_add</span>
+          <p>No connections yet</p>
+          <span class="empty-sub">Click "Add connection" to get started</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ RANKINGS ════ -->
+    <section id="rankings" class="section">
+      <div class="page-title">
+        <h1>Rankings</h1>
+        <span class="page-chip">By Priority</span>
+      </div>
+
+      <div class="chip-bar" id="rank-field-chip-bar">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="priority-filter-row">
+        <span class="filter-label">Priority ›</span>
+        <button class="chip priority-filter-btn active" data-priority="">All</button>
+        <button class="chip priority-filter-btn" data-priority="high" style="border-color:#c0392b;color:#c0392b">● High</button>
+        <button class="chip priority-filter-btn" data-priority="medium" style="border-color:#c47e00;color:#c47e00">● Medium</button>
+        <button class="chip priority-filter-btn" data-priority="low" style="border-color:#2e7d4f;color:#2e7d4f">● Low</button>
+      </div>
+
+      <div class="rankings-card">
+        <div class="rank-header-row">
+          <span>#</span>
+          <span>Person</span>
+          <span>Field</span>
+          <span>Priority</span>
+          <span>Links</span>
+        </div>
+        <div id="rankings-list">
+          <div class="empty-state">
+            <span class="material-icons-round">leaderboard</span>
+            <p>Add connections to see rankings</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ CALENDAR ════ -->
+    <section id="calendar" class="section">
+      <div class="page-title">
+        <h1>Calendar</h1>
+        <button class="filled-btn" id="open-event-modal-btn">
+          <span class="material-icons-round">add</span> Add event
+        </button>
+      </div>
+
+      <div class="calendar-layout">
+        <div class="calendar-widget">
+          <div class="cal-nav">
+            <button class="icon-btn" id="prev-month"><span class="material-icons-round">chevron_left</span></button>
+            <div class="cal-month-year" id="cal-month-year">Month Year</div>
+            <button class="icon-btn" id="next-month"><span class="material-icons-round">chevron_right</span></button>
+          </div>
+          <div class="cal-days-header">
+            <span>Su</span><span>Mo</span><span>Tu</span>
+            <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+
+        <div class="panel events-panel-wrap">
+          <div class="panel-header">
+            <span class="panel-title">Upcoming Events</span>
+          </div>
+          <div id="events-list" class="events-list">
+            <div class="empty-state">
+              <span class="material-icons-round">event_busy</span>
+              <p>No events scheduled</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ COMMON EVENTS ════ -->
+    <section id="common-events" class="section">
+      <div class="page-title">
+        <h1>Common Events</h1>
+        <span class="page-chip">Shared with connections</span>
+      </div>
+      <div class="common-events-grid" id="common-events-grid">
+        <div class="empty-state-big">
+          <span class="material-icons-round">event_note</span>
+          <p>No common events tracked yet</p>
+          <span class="empty-sub">Link connections to events when scheduling them</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════ CLAUDE AI PANEL ══════════ -->
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-panel-header">
+      <span class="ai-panel-title">
+        <span class="material-icons-round">auto_awesome</span>
+        Claude AI Assistant
+      </span>
+      <button class="icon-btn" id="ai-panel-close" style="color:var(--primary)">
+        <span class="material-icons-round">close</span>
+      </button>
+    </div>
+    <div class="ai-messages" id="ai-messages">
+      <div class="ai-msg agent">Hi! I'm your Claude-powered AURA assistant. Ask me about your connections, events, or networking strategy.</div>
+    </div>
+    <div class="ai-suggestion-chips">
+      <button class="ai-chip">Who are my top connections?</button>
+      <button class="ai-chip">Upcoming events</button>
+      <button class="ai-chip">Networking tips</button>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" class="ai-input" id="ai-input" placeholder="Ask about your network…" />
+      <button class="ai-send-btn" id="ai-send">
+        <span class="material-icons-round">send</span>
+      </button>
+    </div>
+  </div>
+  <button class="ai-panel-toggle" id="ai-toggle" title="Ask Claude">
+    <span class="material-icons-round">auto_awesome</span>
+  </button>
+
+  <!-- ══════════ PROFILE MODAL ══════════ -->
+  <div class="modal-overlay" id="profile-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Your Profile</span>
+        <button class="icon-btn modal-close" id="profile-modal-close">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-stats-row">
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="p-stat-connections">0</div>
+            <div class="profile-stat-lbl">Connections</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="p-stat-events">0</div>
+            <div class="profile-stat-lbl">Events</div>
+          </div>
+          <div class="profile-stat">
+            <div class="profile-stat-num" id="p-stat-fields">0</div>
+            <div class="profile-stat-lbl">Fields</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Your Name</label>
+          <input type="text" id="p-name" placeholder="e.g. Alex Chen" />
+        </div>
+        <div class="form-row">
+          <label>Role / Title</label>
+          <input type="text" id="p-role" placeholder="e.g. Product Manager" />
+        </div>
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" id="p-email" placeholder="you@example.com" />
+        </div>
+        <div class="form-row">
+          <label>Bio / About</label>
+          <textarea id="p-bio" placeholder="A short bio or networking goal…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="filled-btn" id="save-profile-btn">Save Profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADD CONNECTION MODAL ══════════ -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Add connection</span>
+        <button class="icon-btn modal-close" id="modal-close">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Full name *</label>
+          <input type="text" id="f-name" placeholder="e.g. Jane Smith" />
+        </div>
+        <div class="form-row">
+          <label>Role / Title</label>
+          <input type="text" id="f-role" placeholder="e.g. Product Designer" />
+        </div>
+        <div class="form-row">
+          <label>Category / Field</label>
+          <select id="f-field">
+            <option value="Technology">Technology</option>
+            <option value="Business">Business</option>
+            <option value="Creative">Creative</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Finance">Finance</option>
+            <option value="Education">Education</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Legal">Legal</option>
+            <option value="Science">Science</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Media">Media</option>
+            <option value="Government">Government</option>
+            <option value="Non-Profit">Non-Profit</option>
+            <option value="Other">Other</option>
+            <option value="__manual__">+ Enter manually…</option>
+          </select>
+        </div>
+        <div class="form-row" id="f-field-manual" style="display:none">
+          <label>Custom Field</label>
+          <input type="text" id="f-field-manual-input" placeholder="e.g. Sports Analytics" />
+        </div>
+        <div class="form-row two-col">
+          <div>
+            <label>LinkedIn URL</label>
+            <input type="url" id="f-linkedin" placeholder="linkedin.com/in/…" />
+          </div>
+          <div>
+            <label>X (Twitter) handle or URL</label>
+            <input type="text" id="f-twitter" placeholder="@handle or x.com/…" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>GitHub URL</label>
+          <input type="url" id="f-github" placeholder="github.com/…" />
+        </div>
+        <div class="form-row">
+          <label>Priority</label>
+          <div class="range-row">
+            <input type="range" id="f-priority" min="0" max="2" step="1" value="1" />
+            <span class="score-display" id="priority-display" style="color:var(--yellow-fg)">Medium</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text-hint);font-family:var(--font-mono);margin-top:2px">
+            <span style="color:var(--green-fg);font-weight:700">Low</span>
+            <span style="color:var(--yellow-fg);font-weight:700">Medium</span>
+            <span style="color:var(--red-fg);font-weight:700">High</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="How you met, key context, shared goals…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="outline-btn" id="modal-cancel-btn">Cancel</button>
+          <button class="filled-btn" id="submit-connection">Save connection</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ADD EVENT MODAL ══════════ -->
+  <div class="modal-overlay" id="event-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Schedule event</span>
+        <button class="icon-btn modal-close" id="event-modal-close">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>Event title *</label>
+          <input type="text" id="e-title" placeholder="e.g. AI Summit 2026" />
+        </div>
+        <div class="form-row two-col">
+          <div>
+            <label>Date *</label>
+            <input type="date" id="e-date" />
+          </div>
+          <div>
+            <label>Time</label>
+            <input type="time" id="e-time" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Type</label>
+          <select id="e-type">
+            <option>Conference</option>
+            <option>Meetup</option>
+            <option>Hackathon</option>
+            <option>Interview</option>
+            <option>Call</option>
+            <option>Workshop</option>
+            <option>Webinar</option>
+            <option>Networking</option>
+            <option>Social</option>
+            <option>Other</option>
+            <option value="__manual__">+ Enter manually…</option>
+          </select>
+        </div>
+        <div class="form-row" id="e-type-manual" style="display:none">
+          <label>Custom Type</label>
+          <input type="text" id="e-type-manual-input" placeholder="e.g. Product Launch" />
+        </div>
+        <div class="form-row">
+          <label>Description / Location</label>
+          <textarea id="e-desc" placeholder="Details, agenda, location…"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Link Connections (who attends?)</label>
+          <div class="conn-search-wrap">
+            <span class="material-icons-round">search</span>
+            <input type="text" id="e-connections-search" placeholder="Search connections to link…" />
+          </div>
+          <div class="connections-selector" id="e-connections-list">
+            <div style="font-size:12px;color:var(--text-hint);padding:8px">Type to search connections</div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="outline-btn" id="event-cancel-btn">Cancel</button>
+          <button class="filled-btn" id="submit-event">Save event</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ COMMON EVENTS POPUP MODAL ══════════ -->
+  <div class="modal-overlay" id="common-events-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="common-events-title">Common Events</span>
+        <button class="icon-btn modal-close" id="common-events-modal-close">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding:0">
+        <div class="events-list" id="common-events-list" style="max-height:400px;padding:4px 0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ JAVASCRIPT ══════════ -->
+  <script src="aura.js"></script>
+
+</body>
+</html>
